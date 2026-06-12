@@ -318,4 +318,4 @@ python -m pytest -q --basetemp .\.tmp_pytest -o cache_dir=.\.tmp_pytest_cache
 - `examples/demo_output/reader.md`
 - `examples/demo_output/manifest.json`
 
-演示用 `manifest.json` 已经过脱敏处理，不包含本地数据库、日志、历史输出或绝对路径。
+
