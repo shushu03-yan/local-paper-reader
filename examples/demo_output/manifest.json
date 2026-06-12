@@ -1,0 +1,23 @@
+﻿{
+    "document_id":  "demo-paper",
+    "source_pdf":  "examples/demo.pdf",
+    "backend":  "paddleocr-python",
+    "model":  "PaddleOCRVL",
+    "ocr_backend":  "paddleocr-python",
+    "ocr_model":  "PaddleOCRVL",
+    "pipeline_version":  "v1.6",
+    "device":  null,
+    "engine":  null,
+    "dpi":  200,
+    "status":  "completed",
+    "pages_total":  9,
+    "pages_succeeded":  9,
+    "pages_failed":  0,
+    "artifacts":  {
+                      "source_pdf":  "examples/demo.pdf",
+                      "paper_markdown":  "examples/demo_output/paper.md",
+                      "reader_markdown":  "examples/demo_output/reader.md",
+                      "manifest":  "examples/demo_output/manifest.json"
+                  },
+    "note":  "Sanitized demo manifest for the public release package. Image assets, logs, databases, and local absolute paths are intentionally omitted."
+}
