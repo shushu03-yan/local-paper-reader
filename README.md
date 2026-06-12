@@ -123,6 +123,98 @@ Key configuration groups:
 - Optional LLM post-processing:
   `LLM_BACKEND`, `LLM_MODEL_NAME`, `LLM_API_KEY`, backend base URLs
 
+## LLM Post-Processing
+
+LLM configuration is only used for OCR post-processing. It does not participate in PDF rendering or the base OCR pipeline.
+
+Current LLM-supported tasks:
+
+- Translation
+- Structured extraction
+- Reading notes
+
+### Mode 1: OCR only, no translation
+
+If you only want:
+
+- PDF to OCR Markdown / JSON
+- local page review
+- manual correction
+
+keep LLM disabled:
+
+```env
+LLM_BACKEND=disabled
+```
+
+In this mode, you can run:
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf
+```
+
+or start the web server and upload a PDF normally.
+
+### Mode 2: OCR plus translation / extraction / notes
+
+If you want translation or other LLM features, enable an LLM backend and set a model.
+
+#### Option A: LM Studio
+
+Example configuration:
+
+```env
+LLM_BACKEND=lmstudio
+LMSTUDIO_BASE_URL=http://127.0.0.1:1234/v1
+LLM_MODEL_NAME=<your-model-name>
+TARGET_LANGUAGE=zh-CN
+```
+
+Use this mode when you already have an OpenAI-compatible local model server running in LM Studio.
+
+#### Option B: DeepSeek
+
+Example configuration:
+
+```env
+LLM_BACKEND=deepseek
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+LLM_MODEL_NAME=<your-model-name>
+LLM_API_KEY=<your-api-key>
+TARGET_LANGUAGE=zh-CN
+```
+
+Use this mode when you want to call the DeepSeek API for translation and post-processing.
+
+### How to trigger translation and other LLM tasks
+
+CLI examples:
+
+Translate only:
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --target-language zh-CN
+```
+
+Translate and extract:
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --extract --target-language zh-CN
+```
+
+Translate, extract, and generate reading notes:
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --extract --reading-notes --target-language zh-CN
+```
+
+Web/API entrypoints:
+
+- `POST /documents/{document_id}/translate`
+- `POST /documents/{document_id}/extract`
+
+If `LLM_BACKEND=disabled`, these post-processing actions will not run.
+
 ## Running the Project
 
 Run the environment self-check:
@@ -227,16 +319,3 @@ The public release includes:
 - `examples/demo_output/manifest.json`
 
 The demo manifest is sanitized. Local databases, logs, historical outputs, and absolute local paths are intentionally excluded.
-
-## Privacy and Scope
-
-This repository does not include:
-
-- `.env`
-- real API keys or tokens
-- local SQLite databases
-- historical `outputs/`
-- private paper collections
-- editor state, caches, or logs
-
-The project is suitable as a local workflow tool or a starting point for further development. It is not intended as a production SaaS OCR service.

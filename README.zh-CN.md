@@ -123,6 +123,98 @@ EXTRACTION_PROFILE=literature
 - 可选 LLM 后处理：
   `LLM_BACKEND`、`LLM_MODEL_NAME`、`LLM_API_KEY`、各后端 base URL
 
+## LLM 后处理说明
+
+LLM 配置只用于 OCR 完成之后的后处理，不参与 PDF 渲染，也不参与基础 OCR 识别。
+
+当前 LLM 能做的事情：
+
+- 翻译
+- 结构化抽取
+- 阅读笔记
+
+### 模式 1：只做 OCR，不做翻译
+
+如果你只需要：
+
+- PDF 转 OCR Markdown / JSON
+- 本地逐页阅读
+- 人工校正
+
+那么保持：
+
+```env
+LLM_BACKEND=disabled
+```
+
+这个模式下可以直接运行：
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf
+```
+
+或者启动 Web 服务后正常上传 PDF。
+
+### 模式 2：OCR 后继续做翻译 / 抽取 / 阅读笔记
+
+如果你要使用翻译或其他 LLM 功能，就需要启用一个 LLM 后端，并指定模型。
+
+#### 方案 A：LM Studio
+
+示例配置：
+
+```env
+LLM_BACKEND=lmstudio
+LMSTUDIO_BASE_URL=http://127.0.0.1:1234/v1
+LLM_MODEL_NAME=<your-model-name>
+TARGET_LANGUAGE=zh-CN
+```
+
+适用于你已经在本机用 LM Studio 跑起了一个兼容 OpenAI 接口的模型服务。
+
+#### 方案 B：DeepSeek
+
+示例配置：
+
+```env
+LLM_BACKEND=deepseek
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+LLM_MODEL_NAME=<your-model-name>
+LLM_API_KEY=<your-api-key>
+TARGET_LANGUAGE=zh-CN
+```
+
+适用于你希望通过 DeepSeek API 来完成翻译和后处理。
+
+### 如何触发翻译和其他 LLM 任务
+
+CLI 示例：
+
+只翻译：
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --target-language zh-CN
+```
+
+翻译并抽取：
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --extract --target-language zh-CN
+```
+
+翻译、抽取并生成阅读笔记：
+
+```powershell
+python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --extract --reading-notes --target-language zh-CN
+```
+
+Web / API 入口：
+
+- `POST /documents/{document_id}/translate`
+- `POST /documents/{document_id}/extract`
+
+如果 `LLM_BACKEND=disabled`，这些后处理功能不会执行。
+
 ## 运行方式
 
 先执行环境自检：
@@ -227,16 +319,3 @@ python -m pytest -q --basetemp .\.tmp_pytest -o cache_dir=.\.tmp_pytest_cache
 - `examples/demo_output/manifest.json`
 
 演示用 `manifest.json` 已经过脱敏处理，不包含本地数据库、日志、历史输出或绝对路径。
-
-## 隐私与范围
-
-这个仓库不包含：
-
-- `.env`
-- 真实 API key 或 token
-- 本地 SQLite 数据库
-- 历史 `outputs/`
-- 私有论文原文集合
-- 编辑器状态、缓存和日志
-
-这个项目适合作为本地工作流工具，或作为后续二次开发的起点；它并不是面向生产环境的 SaaS OCR 服务模板。
