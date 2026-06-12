@@ -2,6 +2,8 @@
 
 > A local-first research paper reader built on PaddleOCR-VL for PDF OCR, bilingual reading, structured extraction, and manual correction.
 
+English | [简体中文](README.zh-CN.md)
+
 `local-paper-reader` is a local workflow tool for turning research PDFs into OCR-friendly Markdown and JSON, then reading, translating, correcting, and extracting structured information page by page.
 
 This repository is organized for local use on Windows and was originally built around the author's own research workflow. It is not a cloud service and does not try to be a generic OCR platform.
