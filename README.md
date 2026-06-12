@@ -318,4 +318,4 @@ The public release includes:
 - `examples/demo_output/reader.md`
 - `examples/demo_output/manifest.json`
 
-The demo manifest is sanitized. Local databases, logs, historical outputs, and absolute local paths are intentionally excluded.
+
