@@ -2,130 +2,106 @@
 
 > A local-first research paper reader built on PaddleOCR-VL for PDF OCR, bilingual reading, structured extraction, and manual correction.
 
-English | [简体中文](README.zh-CN.md)
+English | [Chinese](README.zh-CN.md)
 
-`local-paper-reader` is a local workflow tool for turning research PDFs into OCR-friendly Markdown and JSON, then reading, translating, correcting, and extracting structured information page by page.
+## Overview
 
-This repository is organized for local use on Windows and was originally built around the author's own research workflow. It is not a cloud service and does not try to be a generic OCR platform.
+`local-paper-reader` is a local tool for converting research PDFs into OCR-friendly Markdown and JSON, then reviewing, translating, extracting, and correcting the content page by page.
 
-## ✨ What It Does
+The repository is designed for local Windows usage. It does not target cloud deployment, multi-user serving, or production hardening.
 
-- 📄 Upload or process PDF papers locally
-- 🧠 Run `PaddleOCR-VL` on page images
-- 📝 Merge page OCR into `paper.md` and `paper.json`
-- 🌐 Run optional LLM post-processing for translation, extraction, and reading notes
-- 🔎 Review page-level OCR results in a local web reader
-- ✍️ Save manual corrections for page content
-- 🗂️ Keep outputs indexed with SQLite for local browsing
+## Features
 
-## 🧭 Workflow
+- Local PDF processing and OCR with `PaddleOCR-VL`
+- Page-level OCR output in Markdown
+- Merged document outputs in `paper.md` and `paper.json`
+- Optional LLM post-processing for translation, structured extraction, and reading notes
+- Local FastAPI-based reader UI for page-by-page review
+- Manual page correction support
+- Local SQLite indexing for document and task metadata
 
-The core workflow looks like this:
+## Workflow
 
-`PDF -> page images -> PaddleOCR-VL -> page markdown -> merged markdown/json -> optional translation/extraction -> local review`
-
-Typical outputs include:
-
-- original PDF copy
-- page PNGs
-- page-level OCR markdown
-- merged `paper.md`
-- merged `paper.json`
-- optional translated markdown
-- optional structured extraction JSON
-- optional reading notes JSON
-- manifest and logs
-
-## 🏠 Local-First Scope
-
-This project is intentionally designed for local usage:
-
-- it assumes OCR runs on the local machine
-- it assumes outputs are stored on the local filesystem
-- it does not include authentication, multi-user isolation, or production deployment logic
-- it is best suited for personal or lab-level use
-
-## ✅ Verified Local Environment
-
-The project was verified on the author's local Windows setup with:
-
-- OS: Windows
-- Python environment manager: `conda`
-- Conda environment name: `paddle_ocr_cli`
-- Verified Python path:
-  `C:\Users\25306\anaconda3\envs\paddle_ocr_cli\python.exe`
-
-Useful environment checks:
-
-```powershell
-conda activate paddle_ocr_cli
-python -m pip show paddleocr paddlepaddle-gpu paddlex fastapi
+```text
+PDF
+  -> page images
+  -> PaddleOCR-VL
+  -> page markdown
+  -> merged markdown / json
+  -> optional translation / extraction / notes
+  -> local review and correction
 ```
 
-Important note:
-
-- `paddlepaddle-gpu` depends on your local CUDA version, GPU, and driver stack
-- if installation fails, resolve Paddle/PaddleOCR compatibility first, then come back to this project
-
-## 📦 Repository Layout
+## Repository Layout
 
 ```text
 local-paper-reader/
-  src/                  FastAPI app, services, config, utilities
-  scripts/              CLI entrypoints and local startup helpers
-  tests/                unit tests and API contract checks
-  examples/             safe public demo input/output
+  src/                  application code
+  scripts/              CLI and local startup entrypoints
+  tests/                unit and API tests
+  examples/             public demo input and output
   .env.example          configuration template
-  pyproject.toml        package metadata and pytest settings
-  requirements.txt      pinned dependencies
+  pyproject.toml        package metadata and pytest config
+  requirements.txt      dependency pins
 ```
 
-## 🔐 Privacy and Safety
+## Tested Environment
 
-This public package intentionally excludes:
+The current local development environment is:
 
-- `.env`
-- API keys or tokens
-- local SQLite databases
-- historical `outputs/`
-- personal paper collections under `articles/`
-- logs, caches, and editor state
+- OS: Windows
+- Environment manager: `conda`
+- Environment name: `paddle_ocr_cli`
+- Python: `3.10.20`
+- CUDA: `12.4` (`nvcc 12.4.99`)
+- PaddlePaddle GPU: `3.3.0`
+- PaddleOCR: `3.6.0`
+- PaddleX: `3.6.1`
 
-If you use this repo as a starting point, keep your own `.env`, outputs, and papers outside version control.
+Additional packages currently installed in the same environment:
 
-## ⚙️ Installation
+- FastAPI: `0.136.3`
+- Uvicorn: `0.49.0`
+- python-multipart: `0.0.32`
+- Pydantic: `2.13.4`
+- PyMuPDF: `1.27.2.3`
+- OpenAI Python SDK: `2.41.0`
 
-### 1. Create or activate your environment
+Notes:
+
+- Paddle reports `cuda_compiled=True`
+- The validated runtime device is `gpu:0`
+- GPU availability depends on the local CUDA, driver, and Paddle build matching correctly
+
+## Installation
+
+Activate the target environment first:
 
 ```powershell
 conda activate paddle_ocr_cli
 ```
 
-If you do not already have a working Paddle environment, create one first, then install dependencies.
-
-### 2. Install project dependencies
-
-Use either:
+Then install project dependencies:
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-or:
+Optional editable install:
 
 ```powershell
 python -m pip install -e .[dev]
 ```
 
-## 🧪 Configuration
+## Configuration
 
-Copy the template:
+Create a local `.env` from the template:
 
 ```powershell
 Copy-Item .\.env.example .\.env
 ```
 
-Key settings:
+Core settings:
 
 ```env
 OCR_BACKEND=python-local
@@ -138,117 +114,75 @@ TARGET_LANGUAGE=zh-CN
 EXTRACTION_PROFILE=literature
 ```
 
-### OCR-related settings
+Key configuration groups:
 
-- `OCR_BACKEND=python-local`
-  Use the local PaddleOCR Python backend
-- `PADDLEOCR_PIPELINE_VERSION=v1.6`
-  Matches the current OCR pipeline used by this project
-- `PADDLEOCR_DEVICE=`
-  Optional device override, such as `cpu`
-- `PADDLEOCR_ENGINE=`
-  Optional engine override
+- OCR backend:
+  `OCR_BACKEND`, `PADDLEOCR_PIPELINE_VERSION`, `PADDLEOCR_DEVICE`, `PADDLEOCR_ENGINE`
+- Output and upload control:
+  `OUTPUT_ROOT`, `DATABASE_PATH`, `MAX_UPLOAD_BYTES`
+- Optional LLM post-processing:
+  `LLM_BACKEND`, `LLM_MODEL_NAME`, `LLM_API_KEY`, backend base URLs
 
-### Output settings
+## Running the Project
 
-- `OUTPUT_ROOT=outputs`
-  Where local artifacts are written
-- `DATABASE_PATH=outputs/reader.sqlite3`
-  SQLite index path
-- `MAX_UPLOAD_BYTES=104857600`
-  Upload limit for the web API
-
-### Optional LLM post-processing
-
-By default:
-
-```env
-LLM_BACKEND=disabled
-```
-
-You can enable:
-
-- `lmstudio`
-- `deepseek`
-
-When enabling LLM features, you must also configure:
-
-- `LLM_MODEL_NAME`
-- `LLM_API_KEY` when required
-- base URL values if you are not using the defaults
-
-## 🚀 Running the Project
-
-### Quick local start
-
-The included startup helper lets you provide a Python executable explicitly:
-
-```powershell
-.\scripts\start_local.ps1 -Python "C:\Users\25306\anaconda3\envs\paddle_ocr_cli\python.exe"
-```
-
-### Manual startup
-
-Run a self-check first:
+Run the environment self-check:
 
 ```powershell
 python .\scripts\process_pdf_cli.py --self-check
 ```
 
-Then start the server:
+Start the local server:
 
 ```powershell
 python .\scripts\run_server.py --host 127.0.0.1 --port 8000
+```
+
+Or use the helper script after activating the environment:
+
+```powershell
+.\scripts\start_local.ps1
 ```
 
 Open:
 
 [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-## 💻 CLI Usage
+## CLI Usage
 
-### Pure OCR
+Pure OCR:
 
 ```powershell
 python .\scripts\process_pdf_cli.py .\examples\demo.pdf
 ```
 
-### OCR + translation + extraction + reading notes
+OCR with translation, extraction, and reading notes:
 
 ```powershell
 python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --extract --reading-notes --target-language zh-CN
 ```
 
-### OCR with a glossary
+OCR with glossary-assisted translation:
 
 ```powershell
 python .\scripts\process_pdf_cli.py .\examples\demo.pdf --translate --glossary .\glossary.md
 ```
 
-### Self-check only
+## Web API
 
-```powershell
-python .\scripts\process_pdf_cli.py --self-check
-```
+Main endpoints:
 
-## 🌐 Web API
+- `POST /documents`
+- `GET /documents`
+- `GET /documents/{document_id}`
+- `DELETE /documents/{document_id}`
+- `GET /tasks/{task_id}`
+- `GET /documents/{document_id}/reader`
+- `GET /documents/{document_id}/pages/{page_number}`
+- `POST /documents/{document_id}/pages/{page_number}/corrections`
+- `POST /documents/{document_id}/translate`
+- `POST /documents/{document_id}/extract`
 
-Important endpoints:
-
-- `POST /documents` - upload a PDF and create an OCR task
-- `GET /documents` - list indexed documents
-- `GET /documents/{document_id}` - get document status
-- `DELETE /documents/{document_id}` - delete document index and local output folder
-- `GET /tasks/{task_id}` - get task status
-- `GET /documents/{document_id}/reader` - get reader payload
-- `GET /documents/{document_id}/pages/{page_number}` - get page-level OCR, translation, correction, and image metadata
-- `POST /documents/{document_id}/pages/{page_number}/corrections` - save manual corrections
-- `POST /documents/{document_id}/translate` - generate translation
-- `POST /documents/{document_id}/extract` - generate structured extraction
-
-## 🗃️ Output Structure
-
-Typical output layout:
+## Output Structure
 
 ```text
 outputs/
@@ -269,52 +203,40 @@ outputs/
     logs/run.log
 ```
 
-## 🧪 Tests
+## Tests
 
-Run tests with:
+Run:
 
 ```powershell
 python -m pytest -q
 ```
 
-If your environment has temp/cache permission issues, use:
+If the environment has temp/cache permission restrictions:
 
 ```powershell
 python -m pytest -q --basetemp .\.tmp_pytest -o cache_dir=.\.tmp_pytest_cache
 ```
 
-Most tests do not require real PaddleOCR inference and are focused on the local service logic.
+## Demo Files
 
-## 📁 Demo Files
-
-This release includes a small public demo set:
+The public release includes:
 
 - `examples/demo.pdf`
 - `examples/demo_output/paper.md`
 - `examples/demo_output/reader.md`
 - `examples/demo_output/manifest.json`
 
-Notes:
+The demo manifest is sanitized. Local databases, logs, historical outputs, and absolute local paths are intentionally excluded.
 
-- the demo manifest is sanitized
-- absolute local paths are removed
-- databases, logs, and historical outputs are intentionally omitted
-- image assets are not bundled in the demo output to keep the example lightweight
+## Privacy and Scope
 
-## ⚠️ Current Limitations
+This repository does not include:
 
-- local Windows workflow is the primary target
-- no production deployment setup
-- no background job recovery across process restarts
-- OCR performance and stability depend heavily on the local Paddle environment
-- large-file and multi-user service hardening are out of scope
+- `.env`
+- real API keys or tokens
+- local SQLite databases
+- historical `outputs/`
+- private paper collections
+- editor state, caches, or logs
 
-## 🤝 Intended Use
-
-This repository is suitable if you want to:
-
-- adapt it for your own local paper-reading workflow
-- extend it with more post-processing tools
-- vibe-code on top of a working OCR reader foundation
-
-It is not intended as a drop-in hosted SaaS template.
+The project is suitable as a local workflow tool or a starting point for further development. It is not intended as a production SaaS OCR service.
